@@ -1,19 +1,21 @@
 # ant_colony.py
 
 import random
-import problem
+import problem    
 
-# ACO parameters (tweakable)
-NUM_ANTS       = 40
-NUM_ITERATIONS = 500
-EVAPORATION    = 0.9
-ALPHA          = 1
-BETA           = 2
-
-def run_ant_colony():
+def run_ant_colony(
+    *,
+    num_ants       = 40,
+    num_iterations = 500,
+    evaporation    = 0.9,
+    alpha          = 1.0,
+    beta           = 2.0
+):
+    # grab the up-to-date problem dimensions
     n_nurses = problem.NUM_NURSES
     n_days   = problem.NUM_DAYS
     shifts   = problem.SHIFTS
+    evaluate = problem.evaluate
 
     # initialize pheromones
     pheromones = {
@@ -26,36 +28,37 @@ def run_ant_colony():
     best_schedule = None
     best_score    = float('inf')
 
-    for _ in range(NUM_ITERATIONS):
-        # each ant builds a solution
-        for _ in range(NUM_ANTS):
+    for _ in range(num_iterations):
+        # each ant builds a schedule
+        for _ in range(num_ants):
             schedule = [[None]*n_days for _ in range(n_nurses)]
             for d in range(n_days):
                 for n in range(n_nurses):
-                    choices = []
+                    weights = []
                     for s in shifts:
-                        tau = pheromones[(n, d, s)] ** ALPHA
-                        eta = 1.0  # uniform heuristic (could refine later)
-                        choices.append((s, tau * (eta**BETA)))
+                        tau = pheromones[(n, d, s)] ** alpha
+                        eta = 1.0
+                        weights.append((s, tau * (eta ** beta)))
 
-                    total = sum(weight for _, weight in choices)
+                    total = sum(w for _, w in weights)
                     r     = random.random() * total
                     cum   = 0
-                    for s, weight in choices:
-                        cum += weight
+                    for s, w in weights:
+                        cum += w
                         if r <= cum:
                             schedule[n][d] = s
                             break
 
-            score = problem.evaluate(schedule)
+            score = evaluate(schedule)
             if score < best_score:
-                best_score, best_schedule = score, [row[:] for row in schedule]
+                best_score    = score
+                best_schedule = [row[:] for row in schedule]
 
-        # pheromone evaporation
+        # evaporate pheromones
         for key in pheromones:
-            pheromones[key] *= EVAPORATION
+            pheromones[key] *= evaporation
 
-        # reinforce best
+        # reinforce the global best
         for n in range(n_nurses):
             for d, s in enumerate(best_schedule[n]):
                 pheromones[(n, d, s)] += 1.0 / (1 + best_score)
