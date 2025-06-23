@@ -150,9 +150,19 @@ for size_label, nurses, days in problem_sizes:
     mean_times  = [statistics.mean(results[lbl]['times'])  for lbl in labels]
     x = list(range(len(labels)))
 
-    # Mean Score plot
+    import numpy as np
     plt.figure()
-    plt.bar(x, mean_scores)
+    colors = plt.cm.tab10(np.linspace(0, 1, len(labels)))
+    bars = plt.bar(x, mean_scores, color=colors)
+    for bar, value in zip(bars, mean_scores):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2,
+                 height + 0.01 * max(mean_scores),
+                 f'{value:.2f}',
+                 ha='center',
+                 va='bottom',
+                 fontsize=9)
+
     plt.xticks(x, labels, rotation=45)
     plt.ylabel('Mean Penalty Score')
     plt.title(f'{size_label} Mean Score')
@@ -160,18 +170,20 @@ for size_label, nurses, days in problem_sizes:
     plt.savefig(f'{size_label}_mean_score_SALIN.png')
     plt.close()
 
-    # Mean Time plot
     plt.figure()
-    plt.bar(x, mean_times)
+    bars = plt.bar(x, mean_times, color=colors)
+    for bar, value in zip(bars, mean_times):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2,
+                 height + 0.01 * max(mean_times),
+                 f'{value:.4f}',
+                 ha='center',
+                 va='bottom',
+                 fontsize=9)
+
     plt.xticks(x, labels, rotation=45)
     plt.ylabel('Mean Runtime (s)')
     plt.title(f'{size_label} Mean Time')
     plt.tight_layout()
     plt.savefig(f'{size_label}_mean_time_SALIN.png')
     plt.close()
-
-    # Line Plot: Score vs Run Number
-    plt.figure()
-    for label in labels:
-        plt.plot(range(1, NUM_RUNS + 1), results[label]['scores'], marker='o', label=label)
-
