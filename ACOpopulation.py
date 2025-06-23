@@ -10,7 +10,7 @@ NUM_RUNS = 10
 # different parameters
 experiments = [
     {
-        'label': 'ACO',
+        'label': 'ACO40500',
         'func':  run_ant_colony,
         'args':  {
             'num_ants':       40,
@@ -21,22 +21,22 @@ experiments = [
         }
     },
     {
-        'label': 'ACO20300',
+        'label': 'ACO100200',
         'func':  run_ant_colony,
         'args':  {
-            'num_ants':       20,
-            'num_iterations': 300,
+            'num_ants':       100,
+            'num_iterations': 200,
             'evaporation':    0.9,
             'alpha':          1.0,
             'beta':           2.0
         }
     },
     {
-        'label': 'ACO30200',
+        'label': 'ACO201000',
         'func':  run_ant_colony,
         'args':  {
-            'num_ants':       30,
-            'num_iterations': 200,
+            'num_ants':       20,
+            'num_iterations': 1000,
             'evaporation':    0.9,
             'alpha':          1.0,
             'beta':           2.0
