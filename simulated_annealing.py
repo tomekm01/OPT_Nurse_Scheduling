@@ -1,8 +1,5 @@
-# simulated_annealing.py
-
 import random, math
 from problem import create_random_schedule, evaluate
-
 def cooling_linear(T0, alpha, k):
     return T0 / (1 + alpha * k)
 
