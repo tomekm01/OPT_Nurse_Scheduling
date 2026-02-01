@@ -8,7 +8,7 @@ import numpy as np
 import problem
 from genetic import run_genetic_algorithm
 
-NUM_RUNS = 5
+NUM_RUNS = 10
 
 experiments = [
     {

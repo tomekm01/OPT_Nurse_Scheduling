@@ -1,0 +1,9 @@
+BEST PARAMETERS according to experiments (min score in min time).
+
+SA - SA exponential, initial temp = 100000, exp.alpha = 0.85
+
+TABU - tenure = 2, neighborhood size = 20
+
+GA - population_size = 100, mutation rate = 0.02, rest of parameters default
+
+ACO - num_ants = 100, num_iterations = 200, evaporation = 0.9, alpha = 1.0, beta = 2.0

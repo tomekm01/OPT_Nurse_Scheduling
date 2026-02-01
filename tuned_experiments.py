@@ -6,8 +6,11 @@ import problem
 import matplotlib.pyplot as plt
 
 from simulated_annealing import run_simulated_annealing
+from tabu_search import run_tabu_search
+from genetic import run_genetic_algorithm
 from ant_colony       import run_ant_colony
 from utils_results    import append_row, json_params
+
 
 NUM_RUNS = 10
 BASE_SEED = 12345
@@ -15,17 +18,7 @@ BASE_SEED = 12345
 # Tuned algorithms with their “best” parameters
 experiments = [
     {
-        'label': 'SA-Linear',
-        'func':  run_simulated_annealing,
-        'args':  {
-            'exponential': False,
-            'initial_temp': 50_000,
-            'max_iterations': 2000,
-            'linear_alpha': 1.0
-        }
-    },
-    {
-        'label': 'SA-Exp',
+        'label': 'SA-Exp-Tuned',
         'func':  run_simulated_annealing,
         'args':  {
             'exponential': True,
@@ -34,6 +27,22 @@ experiments = [
             'max_iterations': 2000
         }
     },
+    {
+        'label': 'Tabu-Tuned',
+        'func':  run_tabu_search,
+        'args':  {
+            'tabu_tenure':       2,
+            'neighborhood_size': 20,
+        }
+    },
+    {
+        'label': 'Genetic-Tuned',
+        'func':  run_genetic_algorithm,
+        'args':  {
+            'population_size': 100,
+            'mutation_rate'  : 0.02,
+        }
+    },    
     {
         'label': 'ACO-Tuned',
         'func':  run_ant_colony,
@@ -47,7 +56,6 @@ experiments = [
     },
 ]
 
-# Final problem sizes
 problem_sizes = [
     ("Small",  5,  7),
     ("Medium", 30, 20),
@@ -69,13 +77,11 @@ for size_label, nurses, days in problem_sizes:
 
         print(f"\n--- Run {run} (seed={seed}) ---")
 
-        # also seed the global RNG used by problem.create_random_schedule etc.
         random.seed(seed)
 
         for exp in experiments:
             lbl, fn, args = exp['label'], exp['func'], exp['args']
 
-            # pass seed down to algorithms (works because we added seed param)
             run_args = dict(args)
             run_args["seed"] = seed
 
@@ -111,7 +117,6 @@ for size_label, nurses, days in problem_sizes:
               f"Time  → μ={statistics.mean(tm):.4f}s, σ={statistics.pstdev(tm):.4f}s, "
               f"[{min(tm):.4f}s, {max(tm):.4f}s]")
 
-    # plots (same style as you had)
     labels      = list(results.keys())
     mean_scores = [statistics.mean(results[l]['scores']) for l in labels]
     mean_times  = [statistics.mean(results[l]['times'])  for l in labels]

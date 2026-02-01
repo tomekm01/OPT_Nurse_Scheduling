@@ -1,56 +1,44 @@
-import time, statistics
+import time
+import statistics
 import matplotlib.pyplot as plt
 import numpy as np
-
 import problem
 from tabu_search import run_tabu_search
 
-NUM_RUNS = 5 
+NUM_RUNS = 10
+
+# Defaults for the parameter NOT being tested
+DEF_NEIGHBORHOOD = 20 
+DEF_TENURE       = 10
 
 experiments = [
-    # --- Small Neighborhood ---
     {
-        'label': 'TS-Ten.5-N.10',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 5, 'neighborhood_size': 10 }
+        'label': 'Tenure-Small (2)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': 2,  'neighborhood_size': DEF_NEIGHBORHOOD }
     },
     {
-        'label': 'TS-Ten.10-N.10',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 10, 'neighborhood_size': 10 }
+        'label': 'Tenure-Med (10)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': 10, 'neighborhood_size': DEF_NEIGHBORHOOD }
     },
     {
-        'label': 'TS-Ten.20-N.10',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 20, 'neighborhood_size': 10 }
+        'label': 'Tenure-Big (50)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': 50, 'neighborhood_size': DEF_NEIGHBORHOOD }
     },
 
-    # --- Medium Neighborhood ---
     {
-        'label': 'TS-Ten.5-N.20',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 5, 'neighborhood_size': 20 }
+        'label': 'Neigh-Small (5)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': DEF_TENURE, 'neighborhood_size': 5 }
     },
     {
-        'label': 'TS-Ten.10-N.20',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 10, 'neighborhood_size': 20 }
+        'label': 'Neigh-Med (20)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': DEF_TENURE, 'neighborhood_size': DEF_NEIGHBORHOOD }
     },
     {
-        'label': 'TS-Ten.20-N.20',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 20, 'neighborhood_size': 20 }
-    },
-
-    # --- Large Neighborhood ---
-    {
-        'label': 'TS-Ten.10-N.50',
-        'func':  run_tabu_search,
-        'args':  { 'max_iterations': 1000, 'tabu_tenure': 10, 'neighborhood_size': 50 }
+        'label': 'Neigh-Big (50)',
+        'args':  { 'max_iterations': 1000, 'tabu_tenure': DEF_TENURE, 'neighborhood_size': 50 }
     },
 ]
 
-# Test sizes
 problem_sizes = [
     ("Small",  5,  7),
     ("Medium", 30, 20),
@@ -63,70 +51,71 @@ for size_label, nurses, days in problem_sizes:
 
     print(f"\n===== {size_label} ({nurses}×{days}) =====")
 
-    results = {exp['label']: {'scores':[], 'times':[]} for exp in experiments}
+    results = {exp['label']: {'scores': [], 'times': []} for exp in experiments}
 
-    for run in range(1, NUM_RUNS+1):
+    for run in range(1, NUM_RUNS + 1):
         print(f"\n--- Run {run} ---")
+
         for exp in experiments:
             label = exp['label']
-            func  = exp['func']
-            args  = exp['args']
+            args = exp['args']
 
             t0 = time.time()
-            schedule = func(**args)
             
-            score    = problem.evaluate(schedule)
-            elapsed  = round(time.time() - t0, 2)
+            schedule = run_tabu_search(seed=run, **args)
+            
+            elapsed = round(time.time() - t0, 2)
+            score = problem.evaluate(schedule)
 
             results[label]['scores'].append(score)
             results[label]['times'].append(elapsed)
 
-            print(f"{label:15} → Score: {score:6} | Time: {elapsed:6}s")
+            print(f"{label:20} → Score: {score:6} | Time: {elapsed:6}s")
 
     print("\n--- Summary ---")
     for label, data in results.items():
-        sc, tm = data['scores'], data['times']
-        print(f"{label:15} | "
-              f"Score → mean={statistics.mean(sc):.2f}, std={statistics.pstdev(sc):.2f}, "
-              f"min={min(sc)}, max={max(sc)} | "
-              f"Time  → mean={statistics.mean(tm):.2f}s")
+        sc = data['scores']
+        tm = data['times']
+        print(
+            f"{label:20} | "
+            f"Score → mean={statistics.mean(sc):.2f}, "
+            f"std={statistics.pstdev(sc):.2f}, "
+            f"min={min(sc)}, max={max(sc)} | "
+            f"Time → mean={statistics.mean(tm):.2f}s"
+        )
 
     labels = list(results.keys())
-    mean_scores = [statistics.mean(results[lbl]['scores']) for lbl in labels]
-    mean_times  = [statistics.mean(results[lbl]['times'])  for lbl in labels]
+    mean_scores = [statistics.mean(results[l]['scores']) for l in labels]
+    mean_times = [statistics.mean(results[l]['times']) for l in labels]
     x = np.arange(len(labels))
 
-    plt.figure(figsize=(10, 6))
-    colors = plt.cm.viridis(np.linspace(0, 0.9, len(labels)))
+    plt.figure(figsize=(12, 6))
+    colors = ['#1f77b4']*3 + ['#ff7f0e']*3 
     bars = plt.bar(x, mean_scores, color=colors)
     
     for bar, value in zip(bars, mean_scores):
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2,
-                 height + 0.01 * max(mean_scores),
-                 f'{value:.1f}',
+        plt.text(bar.get_x() + bar.get_width()/2, height, f'{value:.1f}', 
                  ha='center', va='bottom', fontsize=9, fontweight='bold')
 
     plt.xticks(x, labels, rotation=45, ha="right")
-    plt.ylabel('Mean Penalty Score')
-    plt.title(f'{size_label} - Tabu Search Performance')
+    plt.ylabel("Mean Penalty Score")
+    plt.title(f"{size_label} – Tabu Search Tuning (Blue=Tenure, Orange=Neighbor)")
     plt.tight_layout()
-    plt.savefig(f'{size_label}_mean_score_TABU.png')
+    plt.savefig(f"{size_label}_mean_score_TABU_tuning.png")
     plt.close()
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 6))
     bars = plt.bar(x, mean_times, color=colors)
     
     for bar, value in zip(bars, mean_times):
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2,
-                 height + 0.01 * max(mean_times),
-                 f'{value:.2f}s',
+        plt.text(bar.get_x() + bar.get_width()/2, height, f'{value:.2f}s', 
                  ha='center', va='bottom', fontsize=9)
 
     plt.xticks(x, labels, rotation=45, ha="right")
-    plt.ylabel('Mean Runtime (s)')
-    plt.title(f'{size_label} - Tabu Search Runtime')
+    plt.ylabel("Mean Runtime (s)")
+    plt.title(f"{size_label} – Tabu Search Runtime")
     plt.tight_layout()
-    plt.savefig(f'{size_label}_mean_time_TABU.png')
+    plt.savefig(f"{size_label}_mean_time_TABU_tuning.png")
     plt.close()
